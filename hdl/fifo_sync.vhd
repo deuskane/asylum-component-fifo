@@ -87,6 +87,31 @@ begin  -- rtl
                    ("0"&       wptr(clog2(DEPTH)-1 downto 0)));
 
   -----------------------------------------------------------------------------
+  -- Pointer update
+  -----------------------------------------------------------------------------
+  process (clk_i, arst_b_i) is
+  begin  -- process
+    if arst_b_i = '0'
+    then
+      rptr <= (others => '0');
+      wptr <= (others => '0');
+      
+    elsif rising_edge(clk_i)
+    then
+      if (m_axis_transfer = '1')
+      then
+        rptr <= rptr+1;
+      end if;
+
+      if (s_axis_transfer = '1')
+      then
+        wptr <= wptr+1;
+      end if;
+      
+    end if;
+  end process;
+  
+  -----------------------------------------------------------------------------
   -- Internal RAM
   -----------------------------------------------------------------------------
   ins_RAM : ram_1r1w
