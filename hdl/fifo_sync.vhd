@@ -83,7 +83,7 @@ begin  -- rtl
   nb_elt_full  <= ((ptr_msb_ne&wptr(clog2(DEPTH)-1 downto 0))-
                    ("0"&       rptr(clog2(DEPTH)-1 downto 0)));
 
-  nb_elt_empty <= ((ptr_msb_ne&rptr(clog2(DEPTH)-1 downto 0))-
+  nb_elt_empty <= ((ptr_msb_eq&rptr(clog2(DEPTH)-1 downto 0))-
                    ("0"&       wptr(clog2(DEPTH)-1 downto 0)));
 
   -----------------------------------------------------------------------------
@@ -143,5 +143,16 @@ begin  -- rtl
   s_axis_tready          <= not full;
   s_axis_tready_o        <= s_axis_tready;
   s_axis_nb_elt_empty_o  <= std_logic_vector(nb_elt_empty);
+
+-- synthesis translate_off
+  process (clk_i) is
+  begin  -- process
+    if rising_edge(clk_i)
+    then
+      assert (nb_elt_full+nb_elt_empty) = DEPTH report "nb_elt_full + nb_elt_empty must be always equal DEPTH" severity error;
+    end if;
+  end process;
   
+-- synthesis translate_on
+
 end rtl;
