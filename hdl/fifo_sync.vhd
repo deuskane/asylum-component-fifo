@@ -30,23 +30,23 @@ use work.ram_1r1w_pkg.all;
 entity fifo_sync is
   -- =====[ Interfaces ]==========================
   generic (
-    WIDTH           : natural := 8;
-    DEPTH           : natural := 4
-    );
-  port (
-    clk_i           : in  std_logic;
-    arst_b_i        : in  std_logic;
+    WIDTH                  : natural := 8;
+    DEPTH                  : natural := 4
+    );                     
+  port (                   
+    clk_i                  : in  std_logic;
+    arst_b_i               : in  std_logic;
+                           
+    s_axis_tvalid_i        : in  std_logic;
+    s_axis_tready_o        : out std_logic;
+    s_axis_tdata_i         : in  std_logic_vector(WIDTH-1 downto 0);
+    s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0);
+                           
+    m_axis_tvalid_o        : out std_logic;
+    m_axis_tready_i        : in  std_logic;
+    m_axis_tdata_o         : out std_logic_vector(WIDTH-1 downto 0);
 
-    s_axis_tvalid_i : in  std_logic;
-    s_axis_tready_o : out std_logic;
-    s_axis_tdata_i  : in  std_logic_vector(WIDTH-1 downto 0);
-    s_axis_nb_elt_o : out std_logic_vector(clog2(DEPTH) downto 0);
-    
-    m_axis_tvalid_o : out std_logic;
-    m_axis_tready_i : in  std_logic;
-    m_axis_tdata_o  : out std_logic_vector(WIDTH-1 downto 0);
-
-    m_axis_nb_elt_o : out std_logic_vector(clog2(DEPTH) downto 0)
+    m_axis_nb_elt_full_o   : out std_logic_vector(clog2(DEPTH) downto 0)
 
     );
 end fifo_sync;
@@ -60,7 +60,8 @@ architecture rtl of fifo_sync is
   signal ptr_lsb_eq    : std_ulogic;
   signal full          : std_ulogic;
   signal empty         : std_ulogic;
-  signal nb_elt        : unsigned(clog2(DEPTH) downto 0);
+  signal nb_elt_full   : unsigned(clog2(DEPTH) downto 0);
+  signal nb_elt_empty  : unsigned(clog2(DEPTH) downto 0);
 
   signal m_axis_tvalid : std_ulogic;
   
@@ -69,15 +70,18 @@ begin  -- rtl
   -----------------------------------------------------------------------------
   -- FIFO Flag
   -----------------------------------------------------------------------------
-  ptr_msb_ne <= wptr(clog2(DEPTH)) xor rptr(clog2(DEPTH));
-  ptr_msb_eq <= not ptr_msb_ne;
-  ptr_lsb_eq <= '1' when wptr(clog2(DEPTH)-1 downto 0)  = rptr(clog2(DEPTH)-1 downto 0)  else '0';
-  
-  empty      <= ptr_lsb_eq and ptr_msb_eq;
-  full       <= ptr_lsb_eq and ptr_msb_ne;
+  ptr_msb_ne   <= wptr(clog2(DEPTH)) xor rptr(clog2(DEPTH));
+  ptr_msb_eq   <= not ptr_msb_ne;
+  ptr_lsb_eq   <= '1' when wptr(clog2(DEPTH)-1 downto 0)  = rptr(clog2(DEPTH)-1 downto 0)  else '0';
+               
+  empty        <= ptr_lsb_eq and ptr_msb_eq;
+  full         <= ptr_lsb_eq and ptr_msb_ne;
+               
+  nb_elt_full  <= ((ptr_msb_ne&wptr(clog2(DEPTH)-1 downto 0))-
+                   ("0"&       rptr(clog2(DEPTH)-1 downto 0)));
 
-  nb_elt     <= ((ptr_msb_ne&wptr(clog2(DEPTH)-1 downto 0))-
-                 ("0"&       rptr(clog2(DEPTH)-1 downto 0)));
+  nb_elt_empty <= ((ptr_msb_ne&rptr(clog2(DEPTH)-1 downto 0))-
+                   ("0"&       wptr(clog2(DEPTH)-1 downto 0)));
 
   -----------------------------------------------------------------------------
   -- Internal RAM
@@ -101,6 +105,10 @@ begin  -- rtl
   -----------------------------------------------------------------------------
   -- AXI-Stream Command
   -----------------------------------------------------------------------------
-  m_axis_tvalid   <= not empty;
-  s_axis_tready_o <= not full;
+  m_axis_tvalid          <= not empty;
+  m_axis_nb_elt_full_o   <= std_logic_vector(nb_elt_full);
+
+  s_axis_tready_o        <= not full;
+  s_axis_nb_elt_empty_o  <= std_logic_vector(nb_elt_empty);
+  
 end rtl;
