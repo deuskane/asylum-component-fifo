@@ -63,7 +63,10 @@ architecture rtl of fifo_sync is
   signal nb_elt_full   : unsigned(clog2(DEPTH) downto 0);
   signal nb_elt_empty  : unsigned(clog2(DEPTH) downto 0);
 
-  signal m_axis_tvalid : std_ulogic;
+  signal m_axis_tvalid   : std_ulogic;
+  signal s_axis_tready   : std_ulogic;
+  signal m_axis_transfer : std_ulogic;
+  signal s_axis_transfer : std_ulogic;
   
 begin  -- rtl
   
@@ -97,7 +100,7 @@ begin  -- rtl
      ,re_i    => m_axis_tvalid
      ,raddr_i => std_logic_vector(rptr(clog2(DEPTH)-1 downto 0))
      ,rdata_o => m_axis_tdata_o
-     ,we_i    => s_axis_tvalid_i
+     ,we_i    => s_axis_transfer
      ,waddr_i => std_logic_vector(wptr(clog2(DEPTH)-1 downto 0))
      ,wdata_i => s_axis_tdata_i
      );
@@ -105,10 +108,15 @@ begin  -- rtl
   -----------------------------------------------------------------------------
   -- AXI-Stream Command
   -----------------------------------------------------------------------------
+  m_axis_transfer        <= m_axis_tvalid   and m_axis_tready_i;
+  s_axis_transfer        <= s_axis_tvalid_i and s_axis_tready;
+
   m_axis_tvalid          <= not empty;
+  m_axis_tvalid_o        <= m_axis_tvalid;
   m_axis_nb_elt_full_o   <= std_logic_vector(nb_elt_full);
 
-  s_axis_tready_o        <= not full;
+  s_axis_tready          <= not full;
+  s_axis_tready_o        <= s_axis_tready;
   s_axis_nb_elt_empty_o  <= std_logic_vector(nb_elt_empty);
   
 end rtl;
