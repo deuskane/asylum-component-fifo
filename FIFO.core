@@ -31,6 +31,7 @@ filesets:
     file_type    : vhdlSource
     depend       :
       - asylum:utils:pkg
+      - asylum:component:ram_1r1w
 
 #=========================================
 targets:
@@ -42,6 +43,15 @@ targets:
     description     : Default Target
     filesets        :
       - hdl
-    toplevel        : FIFO
-    default_tool    : ghdl
 
+  #---------------------------------------
+  lint :
+  #---------------------------------------
+    << : *default
+    description     : Simulation of basic unit tests
+    toplevel        : fifo_sync
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall"]
+        

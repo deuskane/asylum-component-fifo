@@ -30,8 +30,8 @@ use work.ram_1r1w_pkg.all;
 entity fifo_sync is
   -- =====[ Interfaces ]==========================
   generic (
-    WIDTH           : natural := 32;
-    DEPTH           : natural := 32
+    WIDTH           : natural := 8;
+    DEPTH           : natural := 4
     );
   port (
     clk_i           : in  std_logic;
@@ -46,18 +46,12 @@ entity fifo_sync is
     m_axis_tready_i : in  std_logic;
     m_axis_tdata_o  : out std_logic_vector(WIDTH-1 downto 0);
 
-    m_axis_nb_elt_o : out std_logic_vector(clog2(DEPTH) downto 0);
+    m_axis_nb_elt_o : out std_logic_vector(clog2(DEPTH) downto 0)
 
     );
 end fifo_sync;
 
 architecture rtl of fifo_sync is
-  -- =====[ Types ]===============================
-  type ram_t is array (DEPTH-1 downto 0) of std_logic_vector(WIDTH -1 downto 0);
-
-  -- =====[ Registers ]===========================
-  signal ram_r  : ram_t;
-  
   -- =====[ Signals ]=============================
   signal rptr          : unsigned(clog2(DEPTH) downto 0);
   signal wptr          : unsigned(clog2(DEPTH) downto 0);
@@ -97,10 +91,10 @@ begin  -- rtl
       clk_i   => clk_i
      ,cke_i   => '1'
      ,re_i    => m_axis_tvalid
-     ,raddr_i => rpt
+     ,raddr_i => std_logic_vector(rptr(clog2(DEPTH)-1 downto 0))
      ,rdata_o => m_axis_tdata_o
      ,we_i    => s_axis_tvalid_i
-     ,waddr_i => wptr
+     ,waddr_i => std_logic_vector(wptr(clog2(DEPTH)-1 downto 0))
      ,wdata_i => s_axis_tdata_i
      );
   
