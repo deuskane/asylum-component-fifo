@@ -27,8 +27,10 @@ filesets:
   hdl:
   #---------------------------------------
     files        :
+      - hdl/fifo_pkg.vhd
       - hdl/fifo_sync.vhd
     file_type    : vhdlSource
+    #logical_name : asylum
     depend       :
       - asylum:utils:pkg
       - asylum:component:ram_1r1w
