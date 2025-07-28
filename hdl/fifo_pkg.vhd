@@ -6,7 +6,7 @@
 -- Author     : Mathieu Rosiere
 -- Company    : 
 -- Created    : 2025-07-05
--- Last update: 2025-07-09
+-- Last update: 2025-07-28
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -42,13 +42,16 @@ component fifo_sync is
     s_axis_tvalid_i        : in  std_logic;
     s_axis_tready_o        : out std_logic;
     s_axis_tdata_i         : in  std_logic_vector(WIDTH-1 downto 0);
-    s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0);
-                           
+    s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0); 
+    s_axis_full_o          : out std_logic;
+    s_axis_empty_o         : out std_logic;
+                          
     m_axis_tvalid_o        : out std_logic;
     m_axis_tready_i        : in  std_logic;
     m_axis_tdata_o         : out std_logic_vector(WIDTH-1 downto 0);
-
-    m_axis_nb_elt_full_o   : out std_logic_vector(clog2(DEPTH) downto 0)
+    m_axis_nb_elt_full_o   : out std_logic_vector(clog2(DEPTH) downto 0);
+    m_axis_full_o          : out std_logic;
+    m_axis_empty_o         : out std_logic
 
     );
 end component;

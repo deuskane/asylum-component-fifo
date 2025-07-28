@@ -13,10 +13,11 @@ CAPI=2:
 #-----------------------------------------------------------------------------
 # Revisions  :
 # Date        Version  Author   Description
-# 05/07/2025  1.0.0    mrosiere First Release
+# 2025/07/05  1.0.0    mrosiere First Release
+# 2025/07/28  1.1.0    mrosiere Add flags full/empty in each side
 #-----------------------------------------------------------------------------
 
-name        : asylum:component:fifo:1.0.0
+name        : asylum:component:fifo:1.1.0
 description : FIFO Module
 
 #=========================================
