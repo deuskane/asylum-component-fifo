@@ -34,7 +34,7 @@ filesets:
     #logical_name : asylum
     depend       :
       - asylum:utils:pkg
-      - asylum:component:ram_1r1w
+      - asylum:component:ram
 
 #=========================================
 targets:
