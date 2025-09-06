@@ -6,7 +6,7 @@
 -- Author     : Mathieu Rosiere
 -- Company    : 
 -- Created    : 2025-07-05
--- Last update: 2025-07-28
+-- Last update: 2025-09-06
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ use ieee.numeric_std.all;
 
 library work;
 use     work.math_pkg.all;
-use     work.ram_1r1w_pkg.all;
+use     work.ram_pkg.all;
 
 entity fifo_sync is
   -- =====[ Interfaces ]==========================
