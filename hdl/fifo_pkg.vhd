@@ -23,8 +23,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use work.math_pkg.all;
+library asylum;
+use asylum.math_pkg.all;
 
 package fifo_pkg is
 

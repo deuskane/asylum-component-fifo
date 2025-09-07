@@ -23,9 +23,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use     work.math_pkg.all;
-use     work.ram_pkg.all;
+library asylum;
+use     asylum.math_pkg.all;
+use     asylum.ram_pkg.all;
 
 entity fifo_sync is
   -- =====[ Interfaces ]==========================
