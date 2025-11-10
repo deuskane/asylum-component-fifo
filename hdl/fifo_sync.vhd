@@ -6,7 +6,7 @@
 -- Author     : Mathieu Rosiere
 -- Company    : 
 -- Created    : 2025-07-05
--- Last update: 2025-09-06
+-- Last update: 2025-11-08
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -119,8 +119,9 @@ begin  -- rtl
   -----------------------------------------------------------------------------
   ins_RAM : ram_1r1w
     generic map (
-      WIDTH => WIDTH
-     ,DEPTH => DEPTH
+      WIDTH     => WIDTH
+     ,DEPTH     => DEPTH
+     ,SYNC_READ => false 
       )
     port map(
       clk_i   => clk_i
