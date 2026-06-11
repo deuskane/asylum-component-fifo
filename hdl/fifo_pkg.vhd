@@ -27,14 +27,14 @@ library asylum;
 use asylum.math_pkg.all;
 
 package fifo_pkg is
-
+-- [COMPONENT_INSERT][BEGIN]
 component fifo_sync is
-  -- =====[ Parameters ]==========================
+  -- =====[ Interfaces ]==========================
   generic (
     WIDTH                  : natural := 8;
-    DEPTH                  : natural := 4
+    DEPTH                  : natural := 4;
+    SYNC_READ              : boolean := false
     );                     
-  -- =====[ Interfaces ]==========================
   port (                   
     clk_i                  : in  std_logic;
     arst_b_i               : in  std_logic;
@@ -42,10 +42,10 @@ component fifo_sync is
     s_axis_tvalid_i        : in  std_logic;
     s_axis_tready_o        : out std_logic;
     s_axis_tdata_i         : in  std_logic_vector(WIDTH-1 downto 0);
-    s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0); 
+    s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0);
     s_axis_full_o          : out std_logic;
     s_axis_empty_o         : out std_logic;
-                          
+                           
     m_axis_tvalid_o        : out std_logic;
     m_axis_tready_i        : in  std_logic;
     m_axis_tdata_o         : out std_logic_vector(WIDTH-1 downto 0);
@@ -54,6 +54,7 @@ component fifo_sync is
     m_axis_empty_o         : out std_logic
 
     );
-end component;
-  
+end component fifo_sync;
+
+-- [COMPONENT_INSERT][END]
 end package fifo_pkg;

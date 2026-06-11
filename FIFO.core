@@ -16,9 +16,10 @@ CAPI=2:
 # 2025-07-05  1.0.0    mrosiere First Release
 # 2025-07-28  1.1.0    mrosiere Add flags full/empty in each side
 # 2025-09-06  1.1.1    mrosiere Update depends
+# 2026-06-10  1.2.0    mrosiere Add SYNC_READ and tb
 #-----------------------------------------------------------------------------
 
-name        : asylum:component:fifo:1.1.1
+name        : asylum:component:fifo:1.2.0
 description : FIFO Module
 
 #=========================================
@@ -36,6 +37,16 @@ filesets:
     depend       :
       - asylum:utils:pkg
       - asylum:component:ram
+
+  #---------------------------------------
+  sim_basic:
+  #---------------------------------------
+    files        :
+      - sim/fifo_sync_tb.vhd
+    file_type    : vhdlSource-2008
+    #logical_name : asylum
+    depend       :
+      - bitvis:verification:uvvm   
 
 #=========================================
 targets:
@@ -59,3 +70,29 @@ targets:
       ghdl :
         analyze_options : ["-Wall"]
         
+  #---------------------------------------
+  sim_basic:
+  #---------------------------------------
+    << : *default
+    description     : Simulation of basic unit tests
+    filesets_append :
+      - sim_basic
+    toplevel        : fifo_sync_tb
+    parameters      :
+      - SYNC_READ=false
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall","-fsynopsys","-frelaxed","--no-vital-checks"]
+        run_options     : ["--fst=dut.fst","--ieee-asserts=disable"]
+
+#=========================================
+parameters :
+#=========================================
+
+  SYNC_READ :
+    description : Synchronoys Read
+    datatype    : bool
+    default     : false
+    paramtype   : generic
+

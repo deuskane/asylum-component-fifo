@@ -31,7 +31,8 @@ entity fifo_sync is
   -- =====[ Interfaces ]==========================
   generic (
     WIDTH                  : natural := 8;
-    DEPTH                  : natural := 4
+    DEPTH                  : natural := 4;
+    SYNC_READ              : boolean := false
     );                     
   port (                   
     clk_i                  : in  std_logic;
@@ -121,7 +122,7 @@ begin  -- rtl
     generic map (
       WIDTH     => WIDTH
      ,DEPTH     => DEPTH
-     ,SYNC_READ => false 
+     ,SYNC_READ => SYNC_READ 
       )
     port map(
       clk_i   => clk_i
