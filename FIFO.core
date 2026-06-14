@@ -71,15 +71,32 @@ targets:
         analyze_options : ["-Wall"]
         
   #---------------------------------------
-  sim_basic:
+  sim_fifo_sync_read_async:
   #---------------------------------------
     << : *default
-    description     : Simulation of basic unit tests
+    description     : Simulation of basic unit tests with Synchronous FIFO and Asynchronous RAM
     filesets_append :
       - sim_basic
     toplevel        : fifo_sync_tb
     parameters      :
       - SYNC_READ=false
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall","-fsynopsys","-frelaxed","--no-vital-checks"]
+        run_options     : ["--fst=dut.fst","--ieee-asserts=disable"]
+
+        
+  #---------------------------------------
+  sim_fifo_sync_read_sync:
+  #---------------------------------------
+    << : *default
+    description     : Simulation of basic unit tests with Synchronous FIFO and Synchronous RAM
+    filesets_append :
+      - sim_basic
+    toplevel        : fifo_sync_tb
+    parameters      :
+      - SYNC_READ=true
     default_tool    : ghdl
     tools :
       ghdl :

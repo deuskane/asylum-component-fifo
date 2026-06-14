@@ -96,7 +96,7 @@ begin
   begin
     log(ID_LOG_HDR, "Starting FIFO simulation: SYNC_READ = " & to_string(SYNC_READ));
     
-
+    axistream_if_m.tready <= '0'; -- Always ready to receive
     log(ID_LOG_HDR, "Test 1: Simple write/read sequence");
     p_reset(arst_b);
     wait for 200 ns;
@@ -176,7 +176,7 @@ begin
     increment_expected_alerts(WARNING, 1); -- Expect 1 timeout error
     axistream_transmit(std_logic_vector'(x"FF"), "Attempting overflow write (Expected Timeout)", clk, axistream_if_s, config => v_axistream_bfm_config);
     v_axistream_bfm_config.max_wait_cycles_severity := ERROR;
-    axistream_if_s.tvalid <= '0';
+    axistream_if_s.tvalid <= '0'; -- go back to idle state
 
     -- Empty it to clean up
     for i in 1 to C_DEPTH loop
