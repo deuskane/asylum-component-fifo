@@ -1,0 +1,5 @@
+default                  : Default Target
+lint                     : Simulation of basic unit tests
+sim_fifo_sync_read_async : Simulation of basic unit tests with Synchronous FIFO and Asynchronous RAM
+sim_fifo_sync_read_sync  : Simulation of basic unit tests with Synchronous FIFO and Synchronous RAM
+
