@@ -1,3 +1,5 @@
+[![CI](https://github.com/deuskane/asylum-component-fifo/actions/workflows/ci.yml/badge.svg)](https://github.com/deuskane/asylum-component-fifo/actions/workflows/ci.yml)
+
 # FIFO Component
 
 ## Table of Contents
