@@ -17,9 +17,14 @@ CAPI=2:
 # 2025-07-28  1.1.0    mrosiere Add flags full/empty in each side
 # 2025-09-06  1.1.1    mrosiere Update depends
 # 2026-06-10  1.2.0    mrosiere Add SYNC_READ and tb
+# 2026-10-05  1.2.1    mrosiere Fix SYNC_READ push+pop with one word stored
+#                               Skip nb_elt assertion before reset
+#                               Fix empty/full flags with DEPTH=1
+#                               Add simultaneous push/pop tests
+#                               Rename lint target to lint_ghdl
 #-----------------------------------------------------------------------------
 
-name        : asylum:component:fifo:1.2.0
+name        : asylum:component:fifo:1.2.1
 description : FIFO Module
 
 #=========================================
@@ -60,18 +65,18 @@ targets:
       - hdl
 
   #---------------------------------------
-  lint :
+  lint_ghdl :
   #---------------------------------------
     << : *default
-    description     : Simulation of basic unit tests
-    toplevel        : fifo_sync
+    description     : Lint with GHDL (-Wall analysis and elaboration of fifo_sync)
+    toplevel        : asylum.fifo_sync
     default_tool    : ghdl
     tools :
       ghdl :
-        analyze_options : ["-Wall"]
+        analyze_options : ["-Wall","-Werror"]
         
   #---------------------------------------
-  sim_fifo_sync_read_async:
+  sim_fifo_depth8_read_async:
   #---------------------------------------
     << : *default
     description     : Simulation of basic unit tests with Synchronous FIFO and Asynchronous RAM
@@ -80,6 +85,7 @@ targets:
     toplevel        : fifo_sync_tb
     parameters      :
       - SYNC_READ=false
+      - DEPTH=8
     default_tool    : ghdl
     tools :
       ghdl :
@@ -88,7 +94,7 @@ targets:
 
         
   #---------------------------------------
-  sim_fifo_sync_read_sync:
+  sim_fifo_depth8_read_sync:
   #---------------------------------------
     << : *default
     description     : Simulation of basic unit tests with Synchronous FIFO and Synchronous RAM
@@ -97,6 +103,41 @@ targets:
     toplevel        : fifo_sync_tb
     parameters      :
       - SYNC_READ=true
+      - DEPTH=8
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall","-fsynopsys","-frelaxed","--no-vital-checks"]
+        run_options     : ["--fst=dut.fst","--ieee-asserts=disable"]
+
+  #---------------------------------------
+  sim_fifo_depth1_read_async:
+  #---------------------------------------
+    << : *default
+    description     : Simulation of basic unit tests with DEPTH=1 and Asynchronous RAM
+    filesets_append :
+      - sim_basic
+    toplevel        : fifo_sync_tb
+    parameters      :
+      - SYNC_READ=false
+      - DEPTH=1
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall","-fsynopsys","-frelaxed","--no-vital-checks"]
+        run_options     : ["--fst=dut.fst","--ieee-asserts=disable"]
+
+  #---------------------------------------
+  sim_fifo_depth1_read_sync:
+  #---------------------------------------
+    << : *default
+    description     : Simulation of basic unit tests with DEPTH=1 and Synchronous RAM
+    filesets_append :
+      - sim_basic
+    toplevel        : fifo_sync_tb
+    parameters      :
+      - SYNC_READ=true
+      - DEPTH=1
     default_tool    : ghdl
     tools :
       ghdl :
@@ -113,3 +154,8 @@ parameters :
     default     : false
     paramtype   : generic
 
+  DEPTH :
+    description : FIFO depth (power of 2)
+    datatype    : int
+    default     : 16
+    paramtype   : generic

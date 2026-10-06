@@ -18,6 +18,11 @@
 -- Date        Version  Author  Description
 -- 2025-07-05  0.1      mrosiere Created
 -- 2026-06-10  0.2      mrosiere Add SYNC_READ generic
+-- 2026-10-05  0.3      mrosiere SYNC_READ: fix push and pop in the same cycle
+--                               with one word stored (RAM read at the address
+--                               being written returned a stale word)
+-- 2026-10-05  0.3      mrosiere Skip nb_elt assertion before reset (metavalues)
+-- 2026-10-05  0.3      mrosiere Fix empty/full flags with DEPTH = 1
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -96,7 +101,14 @@ begin  -- rtl
   -----------------------------------------------------------------------------
   ptr_msb_ne   <= wptr(ADDR) xor rptr(ADDR);
   ptr_msb_eq   <= not ptr_msb_ne;
-  ptr_lsb_eq   <= '1' when wptr(ADDR-1 downto 0)  = rptr(ADDR-1 downto 0)  else '0';
+  -- DEPTH = 1 : no address bit, only the MSB (lap bit) distinguishes empty / full
+  gen_ptr_lsb_eq_depth1: if ADDR = 0 generate
+    ptr_lsb_eq <= '1';
+  end generate gen_ptr_lsb_eq_depth1;
+
+  gen_ptr_lsb_eq: if ADDR > 0 generate
+    ptr_lsb_eq <= '1' when wptr(ADDR-1 downto 0)  = rptr(ADDR-1 downto 0)  else '0';
+  end generate gen_ptr_lsb_eq;
                
   empty        <= ptr_lsb_eq and ptr_msb_eq;
   full         <= ptr_lsb_eq and ptr_msb_ne;
@@ -208,8 +220,13 @@ begin  -- rtl
           m_axis_tvalid_r <= '0';  
         end if;
 
-        -- Load output register when RAM data is valid (one cycle after ram_re)
-        if (ram_we = '1' and empty = '1')
+        -- Load the output register with the written word when this word is
+        -- the next head of the FIFO but cannot be read from the RAM:
+        --  * write in an empty FIFO
+        --  * write and read in the same cycle while exactly one word is stored:
+        --    the RAM is read at rptr_next = wptr, the address being written
+        --    (read-during-write would return the old content)
+        if (ram_we = '1' and (empty = '1' or (m_axis_transfer = '1' and wptr = rptr_next)))
         then
           m_axis_tvalid_r <= '1';
           m_axis_tdata_r  <= ram_wdata;
@@ -232,7 +249,7 @@ begin  -- rtl
   begin  -- process
     if rising_edge(clk_i)
     then
-      assert (nb_elt_full+nb_elt_empty) = DEPTH report "nb_elt_full + nb_elt_empty must be always equal DEPTH" severity error;
+      assert is_x(nb_elt_full) or is_x(nb_elt_empty) or (nb_elt_full+nb_elt_empty) = DEPTH report "nb_elt_full + nb_elt_empty must be always equal DEPTH" severity error;
     end if;
   end process;
   
