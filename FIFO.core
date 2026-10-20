@@ -53,6 +53,13 @@ filesets:
     depend       :
       - bitvis:verification:uvvm   
 
+  #---------------------------------------
+  # Lint Files (post_run hook of lint_ghdl_synth)
+  #---------------------------------------
+  files_lint:
+    files:
+      - syn/ghdl/ghdl_synth.sh : {file_type : user, copyto : ghdl_synth.sh}
+
 #=========================================
 targets:
 #=========================================
@@ -74,7 +81,23 @@ targets:
     tools :
       ghdl :
         analyze_options : ["-Wall","-Werror"]
-        
+
+  #---------------------------------------
+  # Synthesis check : lint_ghdl, then ghdl --synth -Wall of fifo_sync
+  # for each configuration of syn/ghdl/ghdl_synth.sh (post_run hook)
+  #---------------------------------------
+  lint_ghdl_synth :
+    << : *default
+    description     : Synthesis check, ghdl --synth -Wall of fifo_sync (5 configurations)
+    toplevel        : asylum.fifo_sync
+    filesets_append : [files_lint]
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall","-Werror"]
+    hooks :
+      post_run : [ghdl_synth]
+
   #---------------------------------------
   sim_fifo_depth8_read_async:
   #---------------------------------------
@@ -143,6 +166,16 @@ targets:
       ghdl :
         analyze_options : ["-Wall","-fsynopsys","-frelaxed","--no-vital-checks"]
         run_options     : ["--fst=dut.fst","--ieee-asserts=disable"]
+
+#=========================================
+scripts :
+#=========================================
+
+  #---------------------------------------
+  # Hook of lint_ghdl_synth (cwd = work_root)
+  #---------------------------------------
+  ghdl_synth :
+    cmd : [bash, ghdl_synth.sh]
 
 #=========================================
 parameters :
