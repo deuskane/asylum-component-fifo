@@ -210,7 +210,7 @@ fusesoc --cores-root . run --build-root build --target sim_fifo_sync_read_sync a
 
 ## Synthesis
 
-The `lint_ghdl` target (GHDL, `analyze_options: ["-Wall"]`, toplevel `asylum.fifo_sync`) is the only static check; there is no `emu_*` target and no constraint file. The HDL of the `default` target is synthesizable: the only simulation construct of `fifo_sync` (the fill-level assertion) is enclosed in `synthesis translate_off / translate_on`. Resource usage is set by `WIDTH x DEPTH` bits of RAM plus two `clog2(DEPTH)+1`-bit pointers; `SYNC_READ = true` gives a registered RAM read port (block-RAM friendly) and adds a `WIDTH`-bit output register, `SYNC_READ = false` requires a RAM with asynchronous read (distributed RAM / registers).
+The `lint_ghdl` target (GHDL, `analyze_options: ["-Wall"]`, toplevel `asylum.fifo_sync`) is the only static check; there is no `emu_*` target and no constraint file. The HDL of the `default` target is synthesizable: the only simulation construct of `fifo_sync` (the fill-level assertion) is enclosed in `synthesis translate_off / translate_on`. The sources are VHDL-2008 (`file_type: vhdlSource-2008`): the fill-level assertion uses `is_x` on `unsigned`, and the ports use the VHDL-2008 records of `ram_pkg` / `sbi_pkg`, so a per-file tool (Vivado, Questa) must compile them in VHDL-2008 mode. Resource usage is set by `WIDTH x DEPTH` bits of RAM plus two `clog2(DEPTH)+1`-bit pointers; `SYNC_READ = true` gives a registered RAM read port (block-RAM friendly) and adds a `WIDTH`-bit output register, `SYNC_READ = false` requires a RAM with asynchronous read (distributed RAM / registers).
 
 ## Design Notes
 
