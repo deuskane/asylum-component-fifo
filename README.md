@@ -180,6 +180,7 @@ This IP has no software-visible registers.
 |--------|----------|-------------|
 | `default` | *(none)* | HDL fileset only (not a simulation) |
 | `lint_ghdl` | `asylum.fifo_sync` | Lint with GHDL: `-Wall` analysis and elaboration of `fifo_sync` with default generics (part of `make nonreg_lint`) |
+| `lint_ghdl_synth` | `asylum.fifo_sync` | Synthesis check: `lint_ghdl`, then `ghdl --synth -Wall` of 5 configurations (`syn/ghdl/ghdl_synth.sh`: defaults, `DEPTH` 1 / 8 with `SYNC_READ` false / true), fails on a synthesis error or an inferred latch (part of `make nonreg_lint`) |
 | `sim_fifo_depth1_read_async` | `fifo_sync_tb` | Testbench with `DEPTH=1`, `SYNC_READ=false` (empty / full flags of a single-word FIFO) |
 | `sim_fifo_depth1_read_sync` | `fifo_sync_tb` | Testbench with `DEPTH=1`, `SYNC_READ=true` |
 | `sim_fifo_sync_read_async` | `fifo_sync_tb` | Testbench with `SYNC_READ=false` (asynchronous RAM read) |
@@ -193,7 +194,8 @@ The default tool is GHDL (`mk/defs.mk`: `TOOL ?= ghdl`, `TARGET ?= sim_fifo_sync
 make help                 # variables, rules and target list (mk/targets.txt)
 make sim_fifo_sync_read_sync   # run one target (log in log/)
 make nonreg_sim           # run every sim_* target
-make nonreg_lint          # run every lint_* target (lint_ghdl)
+make nonreg_lint          # run every lint_* target (lint_ghdl, lint_ghdl_synth)
+make lint_ghdl_synth      # GHDL -Wall lint + ghdl --synth -Wall check
 make clean                # remove build/
 ```
 
@@ -210,7 +212,7 @@ fusesoc --cores-root . run --build-root build --target sim_fifo_sync_read_sync a
 
 ## Synthesis
 
-The `lint_ghdl` target (GHDL, `analyze_options: ["-Wall"]`, toplevel `asylum.fifo_sync`) is the only static check; there is no `emu_*` target and no constraint file. The HDL of the `default` target is synthesizable: the only simulation construct of `fifo_sync` (the fill-level assertion) is enclosed in `synthesis translate_off / translate_on`. Resource usage is set by `WIDTH x DEPTH` bits of RAM plus two `clog2(DEPTH)+1`-bit pointers; `SYNC_READ = true` gives a registered RAM read port (block-RAM friendly) and adds a `WIDTH`-bit output register, `SYNC_READ = false` requires a RAM with asynchronous read (distributed RAM / registers).
+The `lint_ghdl` target (GHDL, `analyze_options: ["-Wall","-Werror"]`, toplevel `asylum.fifo_sync`) and the `lint_ghdl_synth` target (same analysis, then `ghdl --synth -Wall` of 5 configurations) are the static checks; there is no `emu_*` target and no constraint file. The HDL of the `default` target is synthesizable: the only simulation construct of `fifo_sync` (the fill-level assertion) is enclosed in `synthesis translate_off / translate_on`. Resource usage is set by `WIDTH x DEPTH` bits of RAM plus two `clog2(DEPTH)+1`-bit pointers; `SYNC_READ = true` gives a registered RAM read port (block-RAM friendly) and adds a `WIDTH`-bit output register, `SYNC_READ = false` requires a RAM with asynchronous read (distributed RAM / registers).
 
 ## Design Notes
 
@@ -246,6 +248,8 @@ asylum-component-fifo/
 │   └── fifo_sync.vhd
 ├── sim/
 │   └── fifo_sync_tb.vhd    # UVVM AXI-Stream testbench
+├── syn/ghdl/
+│   └── ghdl_synth.sh       # ghdl --synth check (post_run hook of lint_ghdl_synth)
 └── .github/workflows/ci.yml  # CI (sim_fifo_depth1_read_*, sim_fifo_sync_read_*)
 ```
 
