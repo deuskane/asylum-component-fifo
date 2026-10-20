@@ -182,16 +182,16 @@ This IP has no software-visible registers.
 | `lint_ghdl` | `asylum.fifo_sync` | Lint with GHDL: `-Wall` analysis and elaboration of `fifo_sync` with default generics (part of `make nonreg_lint`) |
 | `sim_fifo_depth1_read_async` | `fifo_sync_tb` | Testbench with `DEPTH=1`, `SYNC_READ=false` (empty / full flags of a single-word FIFO) |
 | `sim_fifo_depth1_read_sync` | `fifo_sync_tb` | Testbench with `DEPTH=1`, `SYNC_READ=true` |
-| `sim_fifo_sync_read_async` | `fifo_sync_tb` | Testbench with `SYNC_READ=false` (asynchronous RAM read) |
-| `sim_fifo_sync_read_sync` | `fifo_sync_tb` | Testbench with `SYNC_READ=true` (synchronous RAM read) |
+| `sim_fifo_depth8_read_async` | `fifo_sync_tb` | Testbench with `DEPTH=8`, `SYNC_READ=false` (asynchronous RAM read) |
+| `sim_fifo_depth8_read_sync` | `fifo_sync_tb` | Testbench with `DEPTH=8`, `SYNC_READ=true` (synchronous RAM read) |
 
 ### How to Run
 
-The default tool is GHDL (`mk/defs.mk`: `TOOL ?= ghdl`, `TARGET ?= sim_fifo_sync_read_sync`).
+The default tool is GHDL (`mk/defs.mk`: `TOOL ?= ghdl`, `TARGET ?= sim_fifo_depth8_read_sync`).
 
 ```bash
 make help                 # variables, rules and target list (mk/targets.txt)
-make sim_fifo_sync_read_sync   # run one target (log in log/)
+make sim_fifo_depth8_read_sync # run one target (log in log/)
 make nonreg_sim           # run every sim_* target
 make nonreg_lint          # run every lint_* target (lint_ghdl)
 make clean                # remove build/
@@ -200,7 +200,7 @@ make clean                # remove build/
 Equivalent FuseSoC command:
 
 ```bash
-fusesoc --cores-root . run --build-root build --target sim_fifo_sync_read_sync asylum:component:fifo:1.2.1
+fusesoc --cores-root . run --build-root build --target sim_fifo_depth8_read_sync asylum:component:fifo:1.2.1
 ```
 
 ### Simulation Features
@@ -246,7 +246,7 @@ asylum-component-fifo/
 │   └── fifo_sync.vhd
 ├── sim/
 │   └── fifo_sync_tb.vhd    # UVVM AXI-Stream testbench
-└── .github/workflows/ci.yml  # CI (sim_fifo_depth1_read_*, sim_fifo_sync_read_*)
+└── .github/workflows/ci.yml  # CI (sim_fifo_depth1_read_*, sim_fifo_depth8_read_*)
 ```
 
 ## Dependencies
