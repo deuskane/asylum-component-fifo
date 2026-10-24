@@ -1,8 +1,12 @@
-default                    : Default Target
-lint_ghdl                  : Lint with GHDL (-Wall analysis and elaboration of fifo_sync)
-lint_ghdl_synth            : Synthesis check, ghdl --synth -Wall of fifo_sync (5 configurations)
-sim_fifo_depth1_read_async : Simulation of basic unit tests with DEPTH=1 and Asynchronous RAM
-sim_fifo_depth1_read_sync  : Simulation of basic unit tests with DEPTH=1 and Synchronous RAM
-sim_fifo_depth8_read_async : Simulation of basic unit tests with Synchronous FIFO and Asynchronous RAM
-sim_fifo_depth8_read_sync  : Simulation of basic unit tests with Synchronous FIFO and Synchronous RAM
+default                           : Default Target
+lint_ghdl                         : Lint with GHDL (-Wall analysis and elaboration of fifo_sync)
+lint_ghdl_synth_default           : Synthesis check of fifo_sync, default generics
+lint_ghdl_synth_depth1_read_async : Synthesis check of fifo_sync, DEPTH 1, asynchronous read
+lint_ghdl_synth_depth1_read_sync  : Synthesis check of fifo_sync, DEPTH 1, synchronous read
+lint_ghdl_synth_depth8_read_async : Synthesis check of fifo_sync, DEPTH 8, asynchronous read
+lint_ghdl_synth_depth8_read_sync  : Synthesis check of fifo_sync, DEPTH 8, synchronous read
+sim_fifo_depth1_read_async        : Simulation of basic unit tests with DEPTH=1 and Asynchronous RAM
+sim_fifo_depth1_read_sync         : Simulation of basic unit tests with DEPTH=1 and Synchronous RAM
+sim_fifo_depth8_read_async        : Simulation of basic unit tests with Synchronous FIFO and Asynchronous RAM
+sim_fifo_depth8_read_sync         : Simulation of basic unit tests with Synchronous FIFO and Synchronous RAM
 
