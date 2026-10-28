@@ -37,7 +37,7 @@ filesets:
     files        :
       - hdl/fifo_pkg.vhd
       - hdl/fifo_sync.vhd
-    file_type    : vhdlSource
+    file_type    : vhdlSource-2008
     logical_name : asylum
     depend       :
       - asylum:utils:pkg
