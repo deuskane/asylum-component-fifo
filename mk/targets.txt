@@ -19,4 +19,9 @@ sim_fifo_depth8_read_sync_random       : Simulation of fifo_sync (UVVM), DEPTH 8
 sim_fifo_depth8_read_sync_reset_values : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - flags and fill levels after reset, nothing written by an idle producer
 sim_fifo_depth8_read_sync_underflow    : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - reads refused when empty (m_axis_tvalid_o = 0), next word read, cycle by cycle
 sim_fifo_depth8_read_sync_write_read   : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - 5 words written then read (AXI-Stream BFM)
+syn_default                            : Synthesis (Artix-7, sky130) of fifo_sync, default generics
+syn_depth1_read_async                  : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 1, asynchronous read
+syn_depth1_read_sync                   : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 1, synchronous read
+syn_depth8_read_async                  : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 8, asynchronous read
+syn_depth8_read_sync                   : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 8, synchronous read
 
