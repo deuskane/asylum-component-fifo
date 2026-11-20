@@ -1,0 +1,24 @@
+{ "signal": [
+  { "name": "clk_i",                "wave": "p......" },
+  ["write side",
+    { "name": "s_axis_tvalid_i",      "wave": "01...0." },
+    { "name": "s_axis_tdata_i",       "wave": "x345.x.", "data": ["A", "B", "C"] },
+    { "name": "s_axis_tready_o",      "wave": "1..01.." }
+  ],
+  {},
+  ["read side",
+    { "name": "m_axis_tvalid_o",      "wave": "0.1...0" },
+    { "name": "m_axis_tready_i",      "wave": "0..1..0" },
+    { "name": "m_axis_tdata_o",       "wave": "x.3.45x", "data": ["A", "B", "C"] }
+  ],
+  {},
+  ["flags",
+    { "name": "m_axis_nb_elt_full_o", "wave": "2.22.22", "data": ["0", "1", "2", "1", "0"] },
+    { "name": "s/m_axis_full_o",       "wave": "0..10.." },
+    { "name": "s/m_axis_empty_o",      "wave": "1.0...1" }
+  ]
+  ],
+  "head": { "text": "fifo_sync, DEPTH = 2, same timing for both SYNC_READ values" },
+  "foot": { "text": "C waits while the FIFO is full (s_axis_tready_o = 0); it is written while B is read" },
+  "config": { "hscale": 2 }
+}
