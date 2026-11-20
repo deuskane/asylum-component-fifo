@@ -77,4 +77,68 @@ jobs:
     with:
       name: sim_fifo_depth8_read_sync_write_read
 
+  lint_ghdl:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl
+
+  lint_ghdl_synth_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_default
+
+  lint_ghdl_synth_depth1_read_async:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_depth1_read_async
+
+  lint_ghdl_synth_depth1_read_sync:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_depth1_read_sync
+
+  lint_ghdl_synth_depth8_read_async:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_depth8_read_async
+
+  lint_ghdl_synth_depth8_read_sync:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_depth8_read_sync
+
+  syn_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_default
+
+  syn_depth1_read_async:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_depth1_read_async
+
+  syn_depth1_read_sync:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_depth1_read_sync
+
+  syn_depth8_read_async:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_depth8_read_async
+
+  syn_depth8_read_sync:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_depth8_read_sync
+
+  badges:
+    needs: [sim_fifo_depth1_read_async, sim_fifo_depth1_read_sync, sim_fifo_depth8_read_async, sim_fifo_depth8_read_sync, sim_fifo_depth8_read_sync_alternate, sim_fifo_depth8_read_sync_async_reset, sim_fifo_depth8_read_sync_fill_drain, sim_fifo_depth8_read_sync_half_full, sim_fifo_depth8_read_sync_overflow, sim_fifo_depth8_read_sync_push_pop, sim_fifo_depth8_read_sync_random, sim_fifo_depth8_read_sync_reset_values, sim_fifo_depth8_read_sync_underflow, sim_fifo_depth8_read_sync_write_read, lint_ghdl, lint_ghdl_synth_default, lint_ghdl_synth_depth1_read_async, lint_ghdl_synth_depth1_read_sync, lint_ghdl_synth_depth8_read_async, lint_ghdl_synth_depth8_read_sync, syn_default, syn_depth1_read_async, syn_depth1_read_sync, syn_depth8_read_async, syn_depth8_read_sync]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: deuskane/asylum-ci/.github/workflows/badges.yml@main
+    with:
+      results: ${{ toJSON(needs) }}
+
 #<GENERATE_END>
