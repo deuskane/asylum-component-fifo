@@ -168,13 +168,13 @@ Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): `fi
 
 | Configuration | LUT¹ | LUTRAM¹ | FF¹ | CARRY4¹ | MUXF7/F8¹ | BRAM¹ | DSP¹ | Area² (µm²) | kGE³ |
 |---|---|---|---|---|---|---|---|---|---|
-| `syn_default` (`DEPTH` 4, asynchronous read) | 20 | 8 | 6 | 4 | 2 | 0 | 0 | 1570.26 | 0.418 |
-| `syn_depth1_read_async` | 7 | 0 | 10 | 0 | 0 | 0 | 0 | 336.57 | 0.090 |
-| `syn_depth1_read_sync` | 26 | 0 | 27 | 0 | 0 | 0 | 0 | 1000.96 | 0.267 |
-| `syn_depth8_read_async` | 22 | 8 | 8 | 4 | 0 | 0 | 0 | 3017.89 | 0.804 |
-| `syn_depth8_read_sync` | 44 | 8 | 25 | 4 | 1 | 0 | 0 | 3739.84 | 0.996 |
+| `syn_default` (`DEPTH` 4, asynchronous read) | 11 | 8 | 6 | 4 | 2 | 0 | 0 | 1570.26 | 0.418 |
+| `syn_depth1_read_async` | 6 | 0 | 10 | 0 | 0 | 0 | 0 | 336.57 | 0.090 |
+| `syn_depth1_read_sync` | 15 | 0 | 27 | 0 | 0 | 0 | 0 | 1000.96 | 0.267 |
+| `syn_depth8_read_async` | 15 | 8 | 8 | 4 | 0 | 0 | 0 | 3017.89 | 0.804 |
+| `syn_depth8_read_sync` | 28 | 8 | 25 | 4 | 1 | 0 | 0 | 3739.84 | 0.996 |
 
-¹ Xilinx Artix-7 (LUT6), Yosys 0.33 `synth_xilinx -flatten -noiopad -noclkbuf`, before place and route: every cell of the netlist is counted, Vivado may differ. An `INV` counts as a `LUT1`: `synth_xilinx` puts one on the reset pin of each flip-flop with the active-low reset (2 to 20 of the LUTs above). With 4 and 8 words the storage is in LUTRAM (two `RAM32M`), not in BRAM; with 1 word it is 8 flip-flops. `SYNC_READ = true` adds the RAM read register, the output register `tdata_r` and its valid bit (`2 x WIDTH + 1` flip-flops).
+¹ Xilinx Artix-7 (LUT6), Yosys 0.33 `synth_xilinx -flatten -noiopad -noclkbuf`, before place and route: every cell of the netlist is counted, Vivado may differ. Identical cells are merged as a vendor tool does (`opt_merge -share_all`): the inverters of an active-low reset net become one; every remaining cell is counted, an `INV` as a `LUT1` (1 to 4 of the LUTs above). With 4 and 8 words the storage is in LUTRAM (two `RAM32M`), not in BRAM; with 1 word it is 8 flip-flops. `SYNC_READ = true` adds the RAM read register, the output register `tdata_r` and its valid bit (`2 x WIDTH + 1` flip-flops).
 
 ² SkyWater sky130 `sky130_fd_sc_hd`, typical corner (tt, 25 °C, 1.80 V), Yosys 0.33 `synth` + `dfflibmap` + `abc -liberty`: standard-cell area only, no timing constraint, no buffering, clock tree or placement; the storage becomes flip-flops (no SRAM macro).
 
