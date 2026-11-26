@@ -1,5 +1,7 @@
 default                                : Default Target
 lint_ghdl                              : Lint with GHDL (-Wall analysis and elaboration of fifo_sync)
+lint_ghdl_synth_async_default          : Synthesis check of fifo_async, default generics (DEPTH 4)
+lint_ghdl_synth_async_depth16          : Synthesis check of fifo_async, DEPTH 16
 lint_ghdl_synth_default                : Synthesis check of fifo_sync, default generics
 lint_ghdl_synth_depth1_read_async      : Synthesis check of fifo_sync, DEPTH 1, asynchronous read
 lint_ghdl_synth_depth1_read_sync       : Synthesis check of fifo_sync, DEPTH 1, synchronous read
@@ -19,6 +21,8 @@ sim_fifo_depth8_read_sync_random       : Simulation of fifo_sync (UVVM), DEPTH 8
 sim_fifo_depth8_read_sync_reset_values : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - flags and fill levels after reset, nothing written by an idle producer
 sim_fifo_depth8_read_sync_underflow    : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - reads refused when empty (m_axis_tvalid_o = 0), next word read, cycle by cycle
 sim_fifo_depth8_read_sync_write_read   : Simulation of fifo_sync (UVVM), DEPTH 8, synchronous RAM read - 5 words written then read (AXI-Stream BFM)
+syn_async_default                      : Synthesis (Artix-7, sky130) of fifo_async, default generics (DEPTH 4)
+syn_async_depth16                      : Synthesis (Artix-7, sky130) of fifo_async, DEPTH 16
 syn_default                            : Synthesis (Artix-7, sky130) of fifo_sync, default generics
 syn_depth1_read_async                  : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 1, asynchronous read
 syn_depth1_read_sync                   : Synthesis (Artix-7, sky130) of fifo_sync, DEPTH 1, synchronous read
