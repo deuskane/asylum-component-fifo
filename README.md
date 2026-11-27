@@ -72,7 +72,7 @@ Both sides use AXI-Stream-like valid / ready handshakes, and both see the full /
 - One write and one read per cycle; a word written is readable in the next cycle
 - `SYNC_READ = true`: synchronous RAM read, with an output register for a written word that becomes the head at once
 - Simulation only: assertion `nb_elt_full + nb_elt_empty = DEPTH` on every clock edge
-- `fifo_async`: write side on `s_clk_i`, read side on `m_clk_i` (unrelated clocks), the same AXI-Stream ports, flags and fill levels; storage `ram_2rw_2c`, Gray pointers through `sync2dffrn`; a transfer is seen by the other side 1 to 2 cycles of its clock later, with no further edge of the clock of the transfer (it may stop, as a JTAG TCK)
+- `fifo_async`: write side on `s_clk_i`, read side on `m_clk_i` (unrelated clocks), the same AXI-Stream ports, flags and fill levels; storage `ram_2rw_2c`, Gray pointers (`gray_pkg`) through `sync2dffrn`, reset released on each clock; a transfer is seen by the other side 1 to 2 cycles of its clock later, with no further edge of the clock of the transfer (it may stop, as a JTAG TCK)
 - Component declarations in `asylum.fifo_pkg`
 
 ## Block Diagram
@@ -192,7 +192,7 @@ Entities `fifo_sync` ([hdl/fifo_sync.vhd](hdl/fifo_sync.vhd)) and `fifo_async` (
 
 | Name | Direction | Type | Description |
 |------|-----------|------|-------------|
-| `arst_b_i` | in | std_logic | Asynchronous reset of both sides, active low: assert it asynchronously, release it while both sides are idle, synchronously to each clock or while it is stopped (reset synchronizers of the user) |
+| `arst_b_i` | in | std_logic | Asynchronous reset of both sides, active low, released at any time: each side resynchronizes it (asynchronous assertion, release on the second edge of its own clock); `s_axis_tready_o = 0` while the write side is in reset |
 | `s_clk_i` | in | std_logic | Clock of the write side (`s_axis_*`) |
 | `m_clk_i` | in | std_logic | Clock of the read side (`m_axis_*`) |
 | `s_axis_*` | | | As `fifo_sync`, on `s_clk_i`. `s_axis_full_o` (`not s_axis_tready_o`) is exact; `s_axis_empty_o` and `s_axis_nb_elt_empty_o` are pessimistic: a word read is seen as a free place 1 to 2 cycles of `s_clk_i` later |
@@ -217,8 +217,8 @@ Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): `fi
 | `syn_depth1_read_sync` | 15 | 0 | 27 | 0 | 0 | 0 | 0 | 1000.96 | 0.267 |
 | `syn_depth8_read_async` | 15 | 8 | 8 | 4 | 0 | 0 | 0 | 3017.89 | 0.804 |
 | `syn_depth8_read_sync` | 28 | 8 | 25 | 4 | 1 | 0 | 0 | 3739.84 | 0.996 |
-| `syn_async_default` (`fifo_async`, `DEPTH` 4) ⁴ | 34 | 8 | 30 | 4 | 2 | 0 | 0 | 2303.46 | 0.614 |
-| `syn_async_depth16` (`fifo_async`) ⁴ | 67 | 8 | 46 | 8 | 26 | 0 | 0 | 6847.82 | 1.824 |
+| `syn_async_default` (`fifo_async`, `DEPTH` 4) ⁴ | 38 | 8 | 34 | 4 | 4 | 0 | 0 | 2366.02 | 0.630 |
+| `syn_async_depth16` (`fifo_async`) ⁴ | 51 | 8 | 50 | 8 | 2 | 0 | 0 | 6975.44 | 1.858 |
 
 ¹ Xilinx Artix-7 (LUT6), Yosys 0.33 `synth_xilinx -flatten -noiopad -noclkbuf`, before place and route: every cell of the netlist is counted, Vivado may differ. Identical cells are merged as a vendor tool does (`opt_merge -share_all`): the inverters of an active-low reset net become one; every remaining cell is counted, an `INV` as a `LUT1` (1 to 4 of the LUTs above). With 4 and 8 words the storage is in LUTRAM (two `RAM32M`), not in BRAM; with 1 word it is 8 flip-flops. `SYNC_READ = true` adds the RAM read register, the output register `tdata_r` and its valid bit (`2 x WIDTH + 1` flip-flops).
 
@@ -226,7 +226,7 @@ Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): `fi
 
 ³ Area in thousands of NAND2 gate equivalents (`sky130_fd_sc_hd__nand2_1` = 3.7536 µm²).
 
-⁴ `fifo_async`: the flip-flops are the two pointers and their Gray registers (`clog2(DEPTH)+1` bits each, four of them), the two synchronizers (2 per Gray bit) and the registered read data (`WIDTH`). Only port 0 of `ram_2rw_2c` writes: Yosys keeps a memory with one write clock, in LUTRAM on Artix-7 and in flip-flops in the sky130 flow. These targets need a change of the `yosys_synth` flow of [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) (see the README of [asylum-component-ram](https://github.com/deuskane/asylum-component-ram), `ram_2rw_2c`): until it is released and imported, they fail in the CI. The `lint_ghdl_synth_async_*` and `syn_async_*` targets do not turn the `unhandled-attribute` and `pragma` warnings of `sync2dffrn` into errors (`ghdl --synth` ignores its `ASYNC_REG` attributes).
+⁴ `fifo_async`: the flip-flops are the two pointers and their Gray registers (`clog2(DEPTH)+1` bits each, four of them), the two synchronizers (2 per Gray bit) and the registered read data (`WIDTH`). Only port 0 of `ram_2rw_2c` writes: Yosys keeps a memory with one write clock, in LUTRAM on Artix-7 and in flip-flops in the sky130 flow. The memory is written on one clock but `ram_2rw_2c` describes two write ports: these targets need `asylum:utils:yosys_synth` >= 1.1.1 (see the README of [asylum-component-ram](https://github.com/deuskane/asylum-component-ram), `ram_2rw_2c`). Each side also has its reset synchronizer (2 flip-flops). The `lint_ghdl_synth_async_*` and `syn_async_*` targets do not turn the `unhandled-attribute` and `pragma` warnings of `sync2dffrn` into errors (`ghdl --synth` ignores its `ASYNC_REG` attributes).
 
 ## Theory of Operation
 
@@ -264,8 +264,9 @@ The interface timing is the same for both values. Versions before 1.2.1 returned
 
 With `ADDR = clog2(DEPTH)`, each side has its own pointer of `ADDR+1` bits (`wptr_r` on `s_clk_i`, `rptr_r` on `m_clk_i`) and sends it to the other side in Gray code:
 
-- **Gray code**: `gray = bin xor (bin >> 1)`; two consecutive values differ by one bit. A synchronizer that samples a changing Gray pointer gets the old or the new value, never a mix of both: the other side sees a pointer that is late, never wrong.
+- **Gray code** (`bin2gray` / `gray2bin` of `gray_pkg`, [asylum-utils-pkg](https://github.com/deuskane/asylum-utils-pkg)): `gray = bin xor (bin >> 1)`; two consecutive values differ by one bit. A synchronizer that samples a changing Gray pointer gets the old or the new value, never a mix of both: the other side sees a pointer that is late, never wrong.
 - **Registers**: `wgray_r` and `rgray_r` are registers (a combinational Gray value could glitch into the synchronizer), loaded on the edge of the transfer with the Gray code of the next pointer (`wptr_next`, `rptr_next`): the other side sees the transfer after its 2 flip-flops, without any further edge of the clock of the transfer. A design whose clock stops after a transfer (the TCK of a JTAG probe in `jtag_axis` of [asylum-debug-jtag](https://github.com/deuskane/asylum-debug-jtag)) relies on it (scenario `clock_stop`).
+- **Reset**: `arst_b_i` goes through one `sync2dffrn` per side (`d_i = '1'`): asserted asynchronously, released on the second edge of `s_clk_i` (`s_rst_b`) and of `m_clk_i` (`m_rst_b`), each side reset by its own copy (pointers, Gray registers, synchronizers). `arst_b_i` may be released at any time, with the clocks unrelated; the write side refuses words while it is in reset (`s_axis_tready_o = 0`). A side whose clock is stopped stays in reset until its clock runs (two edges), which is safe: its pointer and Gray register are 0, as the other side expects (scenarios `reset_release`, `reset_traffic`).
 - **Synchronizers**: one `sync2dffrn` (core `asylum:target:techmap`, `ASYNC_REG` attributes) per Gray bit and per direction; `gray2bin` gives the binary pointer of the other side (`rptr_s` on the write side, `wptr_m` on the read side).
 - **Flags**: each side compares its own pointer with the synchronized one, with the formulas of `fifo_sync`: the flag that blocks its own transfers is exact (`full` on the write side, `empty` on the read side, they only change with the side's own transfers or late in the safe direction), the others are pessimistic.
 - **Storage**: `ram_2rw_2c` of [asylum-component-ram](https://github.com/deuskane/asylum-component-ram), port 0 written on `s_clk_i` at `wptr_r`, port 1 read on every edge of `m_clk_i` at `rptr_next` (the next head after a read): `m_axis_tdata_o` is the head word as soon as `m_axis_tvalid_o = 1`. A word becomes visible on the read side at least one cycle of `m_clk_i` after its write (2 flip-flops), so the read never collides with its write; while the FIFO is empty, `m_axis_tdata_o` is meaningless.
@@ -317,11 +318,13 @@ Checks counted as the `=> OK` lines of the log, reference configuration `DEPTH =
 | `fill_drain` | 136 | `DEPTH` words written one by one, then read one by one: the 8 flags and fill levels after each word |
 | `overflow` | 35 | Write refused while full (`s_axis_tready_o = 0` on every cycle, word not stored); a read frees a place on the write side after 1 to 2 write clock periods; order kept |
 | `underflow` | 16 | `m_axis_tvalid_o = 0` while empty; a written word is seen on the read side after 1 to 2 read clock periods, then read |
-| `stream` | 191 | Writer and reader at the same time on their clocks, random valid / ready, `4 x DEPTH + 3` words with the writer faster, then with the reader faster: every word read in order |
+| `stream` | 177 | Writer and reader at the same time on their clocks, random valid / ready, `4 x DEPTH + 3` words with the writer faster, then with the reader faster: every word read in order |
 | `async_reset` | 26 | Reset of a FIFO holding words: both sides empty; words written after the reset read back |
 | `clock_stop` | 12 | A word written, then the write clock stopped: it is read; a word read in a full FIFO, then the read clock stopped: the write side sees the free place |
+| `reset_release` | 21 | During a reset (a word offered) `s_axis_tready_o` and `m_axis_tvalid_o` are 0, the word is not stored; released on a falling edge of the write clock, `s_axis_tready_o` rises after 1 to 2 write clock periods; words go through after it |
+| `reset_traffic` | 45 | Writer and reader active (random valid / ready, words checked in order), a reset asserted and released in the middle of the traffic at times aligned with neither clock: both sides empty after it, new words read in order |
 
-The fifo_async testbench was validated with 16 RTL mutants of `fifo_async.vhd` (each synchronizer bypassed, full and empty flags, transfers without full / empty, RAM read address, fill levels and flags of the other side, reset of the read pointer, `gray2bin`, binary pointer sent instead of Gray, Gray registers loaded from the current pointer instead of the next one), each run scenario by scenario: all are killed (the write Gray register loaded from the current pointer only by `clock_stop`). A metastable sample cannot be simulated: the Gray code and the synchronizers are checked by their latency and by the functional effect of a wrong pointer.
+The fifo_async testbench was validated with 19 RTL mutants of `fifo_async.vhd` (no reset synchronizer on the write side, writes accepted during the reset, each synchronizer bypassed, full and empty flags, transfers without full / empty, RAM read address, fill levels and flags of the other side, reset of the read pointer, `gray2bin`, binary pointer sent instead of Gray, Gray registers loaded from the current pointer instead of the next one), each run scenario by scenario: all are killed (the write Gray register loaded from the current pointer only by `clock_stop`, the reset ones by `reset_release`) but one equivalent mutant: the synchronizer of the read pointer on the write side not reset (it settles to 0 within the two edges of the release of the write side, the read Gray register being cleared asynchronously). A metastable sample cannot be simulated: the Gray code and the synchronizers are checked by their latency and by the functional effect of a wrong pointer.
 
 The testbench was validated with 28 RTL mutants of `fifo_sync.vhd` (flags, pointers, handshakes, RAM addresses, `SYNC_READ` output register and bypass, reset), each run scenario by scenario in the 4 configurations: every mutant is killed except one equivalent mutant (RAM read enable on the read handshake instead of `m_axis_tready_i`).
 
@@ -336,11 +339,11 @@ The testbench was validated with 28 RTL mutants of `fifo_sync.vhd` (flags, point
 | `sim_fifo_depth1_read_sync` | `tb_fifo_sync` | `DEPTH = 1`, `SYNC_READ = true`, every scenario but `half_full` (10664 checks) |
 | `sim_fifo_depth1_read_async` | `tb_fifo_sync` | `DEPTH = 1`, `SYNC_READ = false`, every scenario but `half_full` (10664 checks) |
 | `sim_fifo_async_depth8` | `tb_fifo_async` | `fifo_async` reference configuration (`DEPTH = 8`, write clock 10 ns, read clock 13 ns): build and elaboration only |
-| `sim_fifo_async_depth8_<name>` | `tb_fifo_async` | One target per scenario: `_reset_values`, `_write_read`, `_fill_drain`, `_overflow`, `_underflow`, `_stream`, `_async_reset`, `_clock_stop` (453 checks in all) |
-| `sim_fifo_async_depth4_write_fast` | `tb_fifo_async` | `DEPTH = 4`, write clock 7 ns, read clock 23 ns, every scenario (308 checks) |
-| `sim_fifo_async_depth16_read_fast` | `tb_fifo_async` | `DEPTH = 16`, write clock 23 ns, read clock 7 ns, every scenario (780 checks) |
-| `sim_fifo_async_depth8_same_clock` | `tb_fifo_async` | `DEPTH = 8`, both clocks of 10 ns with their edges together, every scenario (440 checks) |
-| `sim_fifo_async_depth1` | `tb_fifo_async` | `DEPTH = 1`, write clock 10 ns, read clock 13 ns, every scenario (171 checks) |
+| `sim_fifo_async_depth8_<name>` | `tb_fifo_async` | One target per scenario: `_reset_values`, `_write_read`, `_fill_drain`, `_overflow`, `_underflow`, `_stream`, `_async_reset`, `_clock_stop`, `_reset_release`, `_reset_traffic` (505 checks in all) |
+| `sim_fifo_async_depth4_write_fast` | `tb_fifo_async` | `DEPTH = 4`, write clock 7 ns, read clock 23 ns, every scenario (347 checks) |
+| `sim_fifo_async_depth16_read_fast` | `tb_fifo_async` | `DEPTH = 16`, write clock 23 ns, read clock 7 ns, every scenario (854 checks) |
+| `sim_fifo_async_depth8_same_clock` | `tb_fifo_async` | `DEPTH = 8`, both clocks of 10 ns with their edges together, every scenario (512 checks) |
+| `sim_fifo_async_depth1` | `tb_fifo_async` | `DEPTH = 1`, write clock 10 ns, read clock 13 ns, every scenario (207 checks) |
 | `lint_ghdl` | `asylum.fifo_sync` | GHDL `-Wall -Werror` analysis and elaboration of `fifo_sync`, default generics |
 | `lint_ghdl_synth_<config>` | `asylum.fifo_sync` | `ghdl --synth` check (no latch, synthesizable) for 5 generic configurations: `default`, `depth1_read_async`, `depth1_read_sync`, `depth8_read_async`, `depth8_read_sync` |
 | `syn_<config>` | `asylum.fifo_sync` | Synthesis with Yosys, Artix-7 and sky130 (see [Resources](#resources)), same 5 configurations as `lint_ghdl_synth_<config>` |
@@ -380,9 +383,9 @@ Outside the CI, GHDL writes a waveform `dut.fst`.
 |------|------------|---------|
 | `asylum:component:ram` | [asylum-component-ram](https://github.com/deuskane/asylum-component-ram) | `ram_1r1w`, the storage of `fifo_sync`; `ram_2rw_2c` (>= 1.3.0), the storage of `fifo_async` |
 | `asylum:target:techmap` | [asylum-target-techmap](https://github.com/deuskane/asylum-target-techmap) | `sync2dffrn`, the synchronizers of `fifo_async` |
-| `asylum:utils:pkg` | [asylum-utils-pkg](https://github.com/deuskane/asylum-utils-pkg) | Common packages (`math_pkg`: `clog2`); the testbench needs >= 1.10.0 (`string_pkg` lists of `TESTS_LIST`) |
+| `asylum:utils:pkg` | [asylum-utils-pkg](https://github.com/deuskane/asylum-utils-pkg) | Common packages (`math_pkg`: `clog2`; `gray_pkg`: `bin2gray`, `gray2bin` of `fifo_async`, >= 1.12.0); the testbench needs >= 1.10.0 (`string_pkg` lists of `TESTS_LIST`) |
 | `asylum:utils:ghdl_synth` | [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) | `ghdl --synth` check of the `lint_ghdl_synth_*` targets (a core without dependency: this IP is itself a dependency of `asylum:utils:generators`) |
-| `asylum:utils:yosys_synth` | [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) | Yosys synthesis of the `syn_*` targets (Artix-7 and sky130) |
+| `asylum:utils:yosys_synth` | [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) | Yosys synthesis of the `syn_*` targets (Artix-7 and sky130), >= 1.1.1 (memories written on two clocks: `ram_2rw_2c` of `fifo_async`) |
 | `bitvis:verification:uvvm` | [UVVM](https://github.com/UVVM/UVVM) | Verification library and AXI-Stream BFM |
 
 Used by [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) (`csr_fifo`, the FIFO registers of regtool), [asylum-communication-uart](https://github.com/deuskane/asylum-communication-uart) and [asylum-soc-picosoc](https://github.com/deuskane/asylum-soc-picosoc). All the IPs: [asylum-project](https://github.com/deuskane/asylum-project).
