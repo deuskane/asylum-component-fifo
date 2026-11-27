@@ -15,6 +15,8 @@ sim_fifo_async_depth8_async_reset      : Simulation of fifo_async (UVVM), DEPTH 
 sim_fifo_async_depth8_clock_stop       : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - a write (a read) seen by the other side when the write (read) clock stops right after it
 sim_fifo_async_depth8_fill_drain       : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - DEPTH words written then read one by one, flags and fill levels of both sides after each word
 sim_fifo_async_depth8_overflow         : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - writes refused when full, a read frees a place after the synchronizer (latency checked), order kept
+sim_fifo_async_depth8_reset_release    : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - during a reset tready and tvalid low, release on each clock (latency checked), words after it
+sim_fifo_async_depth8_reset_traffic    : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - reset asserted and released in the middle of random traffic at unaligned times, empty after it, new words in order
 sim_fifo_async_depth8_reset_values     : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - flags and fill levels of both sides after reset, nothing read while nothing is written
 sim_fifo_async_depth8_same_clock       : Simulation of fifo_async (UVVM), DEPTH 8, write and read clocks of 10 ns (edges together), every scenario
 sim_fifo_async_depth8_stream           : Simulation of fifo_async (UVVM), DEPTH 8, write clock 10 ns, read clock 13 ns - writer and reader at the same time, random valid / ready, writer faster then reader faster, order kept

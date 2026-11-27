@@ -35,7 +35,7 @@ use     work.tb_fifo_async_bfm_pkg.all;
 package tb_fifo_async_tests_pkg is
 
   -- Names of the scenarios (valid items of TESTS_LIST)
-  constant C_TESTS : string := "reset_values,write_read,fill_drain,overflow,underflow,stream,async_reset,clock_stop";
+  constant C_TESTS : string := "reset_values,write_read,fill_drain,overflow,underflow,stream,async_reset,clock_stop,reset_release,reset_traffic";
 
   -- Run the scenario name
   procedure run_test
@@ -92,6 +92,12 @@ package body tb_fifo_async_tests_pkg is
     elsif string_eq(name, "clock_stop")
     then
       work.tb_fifo_async_clock_stop_pkg.run(cfg, s_clk, m_clk, arst_b, axis_s, axis_m, status, xfer, ena);
+    elsif string_eq(name, "reset_release")
+    then
+      work.tb_fifo_async_reset_release_pkg.run(cfg, s_clk, m_clk, arst_b, axis_s, axis_m, status, xfer, ena);
+    elsif string_eq(name, "reset_traffic")
+    then
+      work.tb_fifo_async_reset_traffic_pkg.run(cfg, s_clk, m_clk, arst_b, axis_s, axis_m, status, xfer, ena);
     else
       alert(TB_ERROR, "Unknown test " & name, C_TB_SCOPE);
     end if;
