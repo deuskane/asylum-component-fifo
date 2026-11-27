@@ -31,14 +31,16 @@
 --                side after it is written, a free place is seen on the write
 --                side after it is read).
 --                - write side : s_axis_full_o exact (s_axis_tready_o =
---                  not full), s_axis_empty_o and s_axis_nb_elt_empty_o
+--                  not full, 0 during the reset), s_axis_empty_o and s_axis_nb_elt_empty_o
 --                  (free places) pessimistic
 --                - read side : m_axis_empty_o exact (m_axis_tvalid_o = not
 --                  empty), m_axis_full_o and m_axis_nb_elt_full_o (stored
 --                  words) pessimistic
---              * arst_b_i resets both sides : assert it asynchronously,
---                release it when each clock is stopped or synchronously to
---                it (reset synchronizer of the user), with both sides idle.
+--              * arst_b_i resets both sides : asserted asynchronously, released
+--                on each side on the second edge of its clock (sync2dffrn,
+--                d_i = 1), so it may be released at any time. During the
+--                reset of the write side s_axis_tready_o = 0. A side whose
+--                clock is stopped (TCK) stays in reset until its clock runs.
 --              DEPTH is a power of 2 (1 allowed).
 -------------------------------------------------------------------------------
 -- Copyright (c) 2026
@@ -46,6 +48,8 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2026-11-26  1.0      mrosiere Created
+-- 2026-11-27  1.1      mrosiere Gray functions of gray_pkg, reset released
+--                               on each clock (sync2dffrn)
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -54,6 +58,7 @@ use     ieee.numeric_std.all;
 
 library asylum;
 use     asylum.math_pkg.all;
+use     asylum.gray_pkg.all;
 use     asylum.ram_pkg.all;
 use     asylum.techmap_pkg.all;
 
@@ -90,23 +95,6 @@ architecture rtl of fifo_async is
 
   subtype  ptr_t is unsigned(ADDR downto 0);
 
-  -- Gray code of a pointer, and back
-  function bin2gray(b : ptr_t) return std_logic_vector is
-  begin
-    return std_logic_vector(b xor shift_right(b, 1));
-  end function bin2gray;
-
-  function gray2bin(g : std_logic_vector(ADDR downto 0)) return ptr_t is
-    variable b : ptr_t;
-  begin
-    b(ADDR) := g(ADDR);
-    for i in ADDR-1 downto 0
-    loop
-      b(i)  := b(i+1) xor g(i);
-    end loop;
-    return b;
-  end function gray2bin;
-
   -- Full : same address, other lap (MSB) ; empty : same pointer. The
   -- addresses are compared as std_logic_vector : equal when DEPTH = 1 (null
   -- vectors ; "=" of numeric_std returns false on a null argument)
@@ -129,6 +117,8 @@ architecture rtl of fifo_async is
   end function is_empty;
 
   -- Write side (s_clk_i)
+  signal   s_rst_b         : std_logic;                             -- arst_b_i released on s_clk_i
+  signal   s_tready        : std_logic;
   signal   wptr_r          : ptr_t;
   signal   wptr_next       : ptr_t;
   signal   wgray_r         : std_logic_vector(ADDR downto 0);
@@ -138,6 +128,7 @@ architecture rtl of fifo_async is
   signal   s_transfer      : std_logic;
 
   -- Read side (m_clk_i)
+  signal   m_rst_b         : std_logic;                             -- arst_b_i released on m_clk_i
   signal   rptr_r          : ptr_t;
   signal   rptr_next       : ptr_t;
   signal   rgray_r         : std_logic_vector(ADDR downto 0);
@@ -147,6 +138,26 @@ architecture rtl of fifo_async is
   signal   m_transfer      : std_logic;
 
 begin  -- architecture rtl
+
+  -----------------------------------------------------------------------------
+  -- Reset of each side : asserted with arst_b_i (asynchronous), released on
+  -- the second edge of the clock of the side (sync2dffrn with d_i = 1)
+  -----------------------------------------------------------------------------
+  ins_s_rst_sync : sync2dffrn
+    port map
+    (clk_i                 => s_clk_i
+    ,arst_b_i              => arst_b_i
+    ,d_i                   => '1'
+    ,q_o                   => s_rst_b
+    );
+
+  ins_m_rst_sync : sync2dffrn
+    port map
+    (clk_i                 => m_clk_i
+    ,arst_b_i              => arst_b_i
+    ,d_i                   => '1'
+    ,q_o                   => m_rst_b
+    );
 
   -----------------------------------------------------------------------------
   -- Storage : port 0 writes (s_clk_i), port 1 reads (m_clk_i) the word at
@@ -178,7 +189,8 @@ begin  -- architecture rtl
   -- Write side
   -----------------------------------------------------------------------------
   s_full     <= is_full(wptr_r, rptr_s);
-  s_transfer <= s_axis_tvalid_i and not s_full;
+  s_tready   <= s_rst_b and not s_full;                             -- No write during the reset
+  s_transfer <= s_axis_tvalid_i and s_tready;
   wptr_next  <= wptr_r + 1 when s_transfer = '1' else
                 wptr_r;
 
@@ -186,16 +198,16 @@ begin  -- architecture rtl
   -- synchronizers), updated on the edge that writes the word : the other
   -- side sees the word with no extra edge of s_clk_i (s_clk_i may stop
   -- after the write, e.g. TCK)
-  process(s_clk_i, arst_b_i)
+  process(s_clk_i, s_rst_b)
   begin
-    if arst_b_i = '0'
+    if s_rst_b = '0'
     then
       wptr_r  <= (others => '0');
       wgray_r <= (others => '0');
     elsif rising_edge(s_clk_i)
     then
       wptr_r  <= wptr_next;
-      wgray_r <= bin2gray(wptr_next);
+      wgray_r <= bin2gray(std_logic_vector(wptr_next));
     end if;
   end process;
 
@@ -204,13 +216,13 @@ begin  -- architecture rtl
     ins_rgray_sync : sync2dffrn
       port map
       (clk_i               => s_clk_i
-      ,arst_b_i            => arst_b_i
+      ,arst_b_i            => s_rst_b
       ,d_i                 => rgray_r(i)
       ,q_o                 => rgray_s(i)
       );
   end generate gen_rgray_sync;
 
-  rptr_s <= gray2bin(rgray_s);
+  rptr_s <= unsigned(gray2bin(rgray_s));
 
   -----------------------------------------------------------------------------
   -- Read side
@@ -220,16 +232,16 @@ begin  -- architecture rtl
   rptr_next  <= rptr_r + 1 when m_transfer = '1' else
                 rptr_r;
 
-  process(m_clk_i, arst_b_i)
+  process(m_clk_i, m_rst_b)
   begin
-    if arst_b_i = '0'
+    if m_rst_b = '0'
     then
       rptr_r  <= (others => '0');
       rgray_r <= (others => '0');
     elsif rising_edge(m_clk_i)
     then
       rptr_r  <= rptr_next;
-      rgray_r <= bin2gray(rptr_next);
+      rgray_r <= bin2gray(std_logic_vector(rptr_next));
     end if;
   end process;
 
@@ -238,18 +250,18 @@ begin  -- architecture rtl
     ins_wgray_sync : sync2dffrn
       port map
       (clk_i               => m_clk_i
-      ,arst_b_i            => arst_b_i
+      ,arst_b_i            => m_rst_b
       ,d_i                 => wgray_r(i)
       ,q_o                 => wgray_m(i)
       );
   end generate gen_wgray_sync;
 
-  wptr_m <= gray2bin(wgray_m);
+  wptr_m <= unsigned(gray2bin(wgray_m));
 
   -----------------------------------------------------------------------------
   -- Outputs
   -----------------------------------------------------------------------------
-  s_axis_tready_o        <= not s_full;
+  s_axis_tready_o        <= s_tready;
   s_axis_full_o          <= s_full;
   s_axis_empty_o         <= is_empty(wptr_r, rptr_s);
   s_axis_nb_elt_empty_o  <= std_logic_vector(to_unsigned(DEPTH, ADDR+1) - (wptr_r - rptr_s));

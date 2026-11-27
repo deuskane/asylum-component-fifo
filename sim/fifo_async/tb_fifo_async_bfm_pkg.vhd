@@ -66,7 +66,8 @@ package tb_fifo_async_bfm_pkg is
     (constant cfg      : in    tb_cfg_t
     );
 
-  -- Reset pulse (both sides idle), released on a falling edge of s_clk
+  -- Reset pulse (both sides idle), released on a falling edge of s_clk,
+  -- then 3 cycles of each clock (reset released on each side)
   procedure do_reset
     (constant cfg      : in    tb_cfg_t
     ;signal   s_clk    : in    std_logic
@@ -117,6 +118,7 @@ package body tb_fifo_async_bfm_pkg is
     wait for 4*(cfg.s_period + cfg.m_period);
     wait until falling_edge(s_clk);
     arst_b <= '1';
+    wait for 3*(cfg.s_period + cfg.m_period);
   end procedure;
 
   procedure check_latency

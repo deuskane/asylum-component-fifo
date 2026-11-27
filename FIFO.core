@@ -41,7 +41,8 @@ filesets:
     file_type    : vhdlSource-2008
     logical_name : asylum
     depend       :
-      - asylum:utils:pkg
+      # gray_pkg (fifo_async)
+      - ">=asylum:utils:pkg:1.12.0"
       # ram_2rw_2c (storage of fifo_async)
       - ">=asylum:component:ram:1.3.0"
       # sync2dffrn (synchronizers of fifo_async)
@@ -109,7 +110,8 @@ filesets:
   #---------------------------------------
     # yosys_synth.sh / yosys_synth.mk / yosys_synth.py (pre_run hook of syn_*)
     depend       :
-      - asylum:utils:yosys_synth
+      # 1.1.1 : memories written on two clocks (ram_2rw_2c of fifo_async)
+      - ">=asylum:utils:yosys_synth:1.1.1"
 
 #=========================================
 targets:
