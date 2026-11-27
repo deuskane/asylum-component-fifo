@@ -28,6 +28,33 @@ use asylum.math_pkg.all;
 
 package fifo_pkg is
 -- [COMPONENT_INSERT][BEGIN]
+component fifo_async is
+  generic (
+    WIDTH                  : natural := 8                          -- Word width
+   ;DEPTH                  : natural := 4                          -- Number of words (power of 2)
+  );
+  port (
+    -- Reset of both sides (asynchronous, active low)
+    arst_b_i               : in  std_logic
+    -- Write side (s_clk_i)
+   ;s_clk_i                : in  std_logic
+   ;s_axis_tvalid_i        : in  std_logic
+   ;s_axis_tready_o        : out std_logic
+   ;s_axis_tdata_i         : in  std_logic_vector(WIDTH-1      downto 0)
+   ;s_axis_nb_elt_empty_o  : out std_logic_vector(clog2(DEPTH) downto 0) -- Free places (pessimistic)
+   ;s_axis_full_o          : out std_logic
+   ;s_axis_empty_o         : out std_logic                               -- Pessimistic
+    -- Read side (m_clk_i)
+   ;m_clk_i                : in  std_logic
+   ;m_axis_tvalid_o        : out std_logic
+   ;m_axis_tready_i        : in  std_logic
+   ;m_axis_tdata_o         : out std_logic_vector(WIDTH-1      downto 0)
+   ;m_axis_nb_elt_full_o   : out std_logic_vector(clog2(DEPTH) downto 0) -- Stored words (pessimistic)
+   ;m_axis_full_o          : out std_logic                               -- Pessimistic
+   ;m_axis_empty_o         : out std_logic
+  );
+end component fifo_async;
+
 component fifo_sync is
   -- =====[ Interfaces ]==========================
   generic (

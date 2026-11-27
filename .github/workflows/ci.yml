@@ -7,6 +7,81 @@ on:
     branches: [ main, develop ]
 jobs:
 #<GENERATE_BEGIN>
+  sim_fifo_async_depth1:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth1
+
+  sim_fifo_async_depth16_read_fast:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth16_read_fast
+
+  sim_fifo_async_depth4_write_fast:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth4_write_fast
+
+  sim_fifo_async_depth8:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8
+
+  sim_fifo_async_depth8_async_reset:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_async_reset
+
+  sim_fifo_async_depth8_clock_stop:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_clock_stop
+
+  sim_fifo_async_depth8_fill_drain:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_fill_drain
+
+  sim_fifo_async_depth8_overflow:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_overflow
+
+  sim_fifo_async_depth8_reset_release:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_reset_release
+
+  sim_fifo_async_depth8_reset_traffic:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_reset_traffic
+
+  sim_fifo_async_depth8_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_reset_values
+
+  sim_fifo_async_depth8_same_clock:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_same_clock
+
+  sim_fifo_async_depth8_stream:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_stream
+
+  sim_fifo_async_depth8_underflow:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_underflow
+
+  sim_fifo_async_depth8_write_read:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_fifo_async_depth8_write_read
+
   sim_fifo_depth1_read_async:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
@@ -82,6 +157,16 @@ jobs:
     with:
       name: lint_ghdl
 
+  lint_ghdl_synth_async_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_async_default
+
+  lint_ghdl_synth_async_depth16:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_async_depth16
+
   lint_ghdl_synth_default:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
@@ -106,6 +191,16 @@ jobs:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
       name: lint_ghdl_synth_depth8_read_sync
+
+  syn_async_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_async_default
+
+  syn_async_depth16:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_async_depth16
 
   syn_default:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
@@ -133,7 +228,7 @@ jobs:
       name: syn_depth8_read_sync
 
   badges:
-    needs: [sim_fifo_depth1_read_async, sim_fifo_depth1_read_sync, sim_fifo_depth8_read_async, sim_fifo_depth8_read_sync, sim_fifo_depth8_read_sync_alternate, sim_fifo_depth8_read_sync_async_reset, sim_fifo_depth8_read_sync_fill_drain, sim_fifo_depth8_read_sync_half_full, sim_fifo_depth8_read_sync_overflow, sim_fifo_depth8_read_sync_push_pop, sim_fifo_depth8_read_sync_random, sim_fifo_depth8_read_sync_reset_values, sim_fifo_depth8_read_sync_underflow, sim_fifo_depth8_read_sync_write_read, lint_ghdl, lint_ghdl_synth_default, lint_ghdl_synth_depth1_read_async, lint_ghdl_synth_depth1_read_sync, lint_ghdl_synth_depth8_read_async, lint_ghdl_synth_depth8_read_sync, syn_default, syn_depth1_read_async, syn_depth1_read_sync, syn_depth8_read_async, syn_depth8_read_sync]
+    needs: [sim_fifo_async_depth1, sim_fifo_async_depth16_read_fast, sim_fifo_async_depth4_write_fast, sim_fifo_async_depth8, sim_fifo_async_depth8_async_reset, sim_fifo_async_depth8_clock_stop, sim_fifo_async_depth8_fill_drain, sim_fifo_async_depth8_overflow, sim_fifo_async_depth8_reset_release, sim_fifo_async_depth8_reset_traffic, sim_fifo_async_depth8_reset_values, sim_fifo_async_depth8_same_clock, sim_fifo_async_depth8_stream, sim_fifo_async_depth8_underflow, sim_fifo_async_depth8_write_read, sim_fifo_depth1_read_async, sim_fifo_depth1_read_sync, sim_fifo_depth8_read_async, sim_fifo_depth8_read_sync, sim_fifo_depth8_read_sync_alternate, sim_fifo_depth8_read_sync_async_reset, sim_fifo_depth8_read_sync_fill_drain, sim_fifo_depth8_read_sync_half_full, sim_fifo_depth8_read_sync_overflow, sim_fifo_depth8_read_sync_push_pop, sim_fifo_depth8_read_sync_random, sim_fifo_depth8_read_sync_reset_values, sim_fifo_depth8_read_sync_underflow, sim_fifo_depth8_read_sync_write_read, lint_ghdl, lint_ghdl_synth_async_default, lint_ghdl_synth_async_depth16, lint_ghdl_synth_default, lint_ghdl_synth_depth1_read_async, lint_ghdl_synth_depth1_read_sync, lint_ghdl_synth_depth8_read_async, lint_ghdl_synth_depth8_read_sync, syn_async_default, syn_async_depth16, syn_default, syn_depth1_read_async, syn_depth1_read_sync, syn_depth8_read_async, syn_depth8_read_sync]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
