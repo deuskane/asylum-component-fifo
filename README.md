@@ -226,7 +226,7 @@ Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): `fi
 
 ³ Area in thousands of NAND2 gate equivalents (`sky130_fd_sc_hd__nand2_1` = 3.7536 µm²).
 
-⁴ `fifo_async`: the flip-flops are the two pointers and their Gray registers (`clog2(DEPTH)+1` bits each, four of them), the two synchronizers (2 per Gray bit) and the registered read data (`WIDTH`). Only port 0 of `ram_2rw_2c` writes: Yosys keeps a memory with one write clock, in LUTRAM on Artix-7 and in flip-flops in the sky130 flow. The memory is written on one clock but `ram_2rw_2c` describes two write ports: these targets need `asylum:utils:yosys_synth` >= 1.1.1 (see the README of [asylum-component-ram](https://github.com/deuskane/asylum-component-ram), `ram_2rw_2c`). Each side also has its reset synchronizer (2 flip-flops). The `lint_ghdl_synth_async_*` and `syn_async_*` targets do not turn the `unhandled-attribute` and `pragma` warnings of `sync2dffrn` into errors (`ghdl --synth` ignores its `ASYNC_REG` attributes).
+⁴ `fifo_async`: the flip-flops are the two pointers and their Gray registers (`clog2(DEPTH)+1` bits each, four of them), the two synchronizers (2 per Gray bit) and the registered read data (`WIDTH`). Only port 0 of `ram_2rw_2c` writes: Yosys keeps a memory with one write clock, in LUTRAM on Artix-7 and in flip-flops in the sky130 flow. The memory is written on one clock but `ram_2rw_2c` describes two write ports: these targets need `asylum:utils:yosys_synth` >= 1.1.1 (see the README of [asylum-component-ram](https://github.com/deuskane/asylum-component-ram), `ram_2rw_2c`). Each side also has its reset synchronizer (2 flip-flops). The `lint_ghdl_synth_async_*` and `syn_async_*` targets do not turn the `unhandled-attribute` warnings of `sync2dffrn` into errors (`ghdl --synth` ignores its `ASYNC_REG`, `SHREG_EXTRACT` and `syn_preserve` attributes); the lint needs `asylum:target:generic` >= 1.1.6 (no comment of `sync2dffrn` read as a pragma).
 
 ## Theory of Operation
 
@@ -382,7 +382,7 @@ Outside the CI, GHDL writes a waveform `dut.fst`.
 | Core | Repository | Purpose |
 |------|------------|---------|
 | `asylum:component:ram` | [asylum-component-ram](https://github.com/deuskane/asylum-component-ram) | `ram_1r1w`, the storage of `fifo_sync`; `ram_2rw_2c` (>= 1.3.0), the storage of `fifo_async` |
-| `asylum:target:techmap` | [asylum-target-techmap](https://github.com/deuskane/asylum-target-techmap) | `sync2dffrn`, the synchronizers of `fifo_async` |
+| `asylum:target:techmap` | [asylum-target-techmap](https://github.com/deuskane/asylum-target-techmap) | `sync2dffrn`, the synchronizers and reset synchronizers of `fifo_async` (`asylum:target:generic` >= 1.1.6 for the `-Werror` lint) |
 | `asylum:utils:pkg` | [asylum-utils-pkg](https://github.com/deuskane/asylum-utils-pkg) | Common packages (`math_pkg`: `clog2`; `gray_pkg`: `bin2gray`, `gray2bin` of `fifo_async`, >= 1.12.0); the testbench needs >= 1.10.0 (`string_pkg` lists of `TESTS_LIST`) |
 | `asylum:utils:ghdl_synth` | [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) | `ghdl --synth` check of the `lint_ghdl_synth_*` targets (a core without dependency: this IP is itself a dependency of `asylum:utils:generators`) |
 | `asylum:utils:yosys_synth` | [asylum-utils-generators](https://github.com/deuskane/asylum-utils-generators) | Yosys synthesis of the `syn_*` targets (Artix-7 and sky130), >= 1.1.1 (memories written on two clocks: `ram_2rw_2c` of `fifo_async`) |

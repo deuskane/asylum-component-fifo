@@ -106,6 +106,8 @@ filesets:
     # ghdl_synth.sh / ghdl_synth.mk (pre_run hook of lint_ghdl_synth_*)
     depend       :
       - asylum:utils:ghdl_synth
+      # sync2dffrn without a comment read as a pragma (-Werror of the lint)
+      - ">=asylum:target:generic:1.1.6"
 
   #---------------------------------------
   syn_yosys:
@@ -191,8 +193,7 @@ targets:
   #---------------------------------------
   # fifo_async : default generics (DEPTH 4) and DEPTH 16. The attributes
   # of sync2dffrn (ASYNC_REG ...) are not handled by ghdl --synth : these
-  # warnings (and the "-- Synthesis ..." comment of sync2dffrn, taken for
-  # a pragma) are not errors
+  # warnings are not errors
   #---------------------------------------
   lint_ghdl_synth_async_default : &lint_ghdl_synth_async
     << : *lint_ghdl_synth
@@ -200,7 +201,7 @@ targets:
     toplevel        : asylum.fifo_async
     tools :
       ghdl :
-        analyze_options : ["-Wno-error=unhandled-attribute","-Wno-error=pragma"]
+        analyze_options : ["-Wno-error=unhandled-attribute"]
 
   #---------------------------------------
   lint_ghdl_synth_async_depth16 :
@@ -270,7 +271,7 @@ targets:
     toplevel        : asylum.fifo_async
     tools :
       ghdl :
-        analyze_options : ["-Wno-error=unhandled-attribute","-Wno-error=pragma"]
+        analyze_options : ["-Wno-error=unhandled-attribute"]
 
   #---------------------------------------
   syn_async_depth16 :
