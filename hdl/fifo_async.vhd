@@ -13,10 +13,14 @@
 -- Description: Dual-clock FIFO : AXI-Stream write side on s_clk_i, AXI-Stream
 --              read side on m_clk_i, unrelated clocks (same ports as
 --              fifo_sync, one clock per side).
---              * Storage : ram_2rw_2c, port 0 written on s_clk_i, port 1
---                read on m_clk_i (registered read, the next word is read
---                one cycle ahead : m_axis_tdata_o is the head word as soon
---                as m_axis_tvalid_o = 1, first-word fall-through).
+--              * Storage : ram_1r1w_2c, written on s_clk_i, read on m_clk_i
+--                (registered read, the next word is read one cycle ahead :
+--                m_axis_tdata_o is the head word as soon as m_axis_tvalid_o
+--                = 1, first-word fall-through). While the FIFO is empty the
+--                read port reads the word that may be being written
+--                (collision) : the result is discarded (m_axis_tvalid_o = 0)
+--                and read again once the write is seen ; the RAM must keep
+--                the word written on a collision.
 --              * Pointers of ADDR+1 bits (ADDR = log2(DEPTH)), the MSB
 --                tells a full FIFO from an empty one. Each side sends its
 --                pointer to the other one in Gray code (one bit changes per
@@ -49,7 +53,8 @@
 -- Date        Version  Author   Description
 -- 2026-11-26  1.0      mrosiere Created
 -- 2026-11-27  1.1      mrosiere Gray functions of gray_pkg, reset released
---                               on each clock (sync2dffrn)
+--                               on each clock (sync2dffrn), storage
+--                               ram_1r1w_2c
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -160,10 +165,10 @@ begin  -- architecture rtl
     );
 
   -----------------------------------------------------------------------------
-  -- Storage : port 0 writes (s_clk_i), port 1 reads (m_clk_i) the word at
-  -- the read pointer of the next cycle
+  -- Storage : written on s_clk_i, the word at the read pointer of the next
+  -- cycle read on every edge of m_clk_i
   -----------------------------------------------------------------------------
-  ins_ram : ram_2rw_2c
+  ins_ram : ram_1r1w_2c
     generic map
     (WIDTH                 => WIDTH
     ,DEPTH                 => DEPTH
@@ -171,17 +176,13 @@ begin  -- architecture rtl
     port map
     (clk0_i                => s_clk_i
     ,cke0_i                => '1'
-    ,cs0_i                 => s_transfer
-    ,we0_i                 => '1'
-    ,addr0_i               => std_logic_vector(wptr_r(ADDR-1 downto 0))
+    ,we0_i                 => s_transfer
+    ,waddr0_i              => std_logic_vector(wptr_r(ADDR-1 downto 0))
     ,wdata0_i              => s_axis_tdata_i
-    ,rdata0_o              => open
     ,clk1_i                => m_clk_i
     ,cke1_i                => '1'
-    ,cs1_i                 => '1'
-    ,we1_i                 => '0'
-    ,addr1_i               => std_logic_vector(rptr_next(ADDR-1 downto 0))
-    ,wdata1_i              => (WIDTH-1 downto 0 => '0')
+    ,re1_i                 => '1'
+    ,raddr1_i              => std_logic_vector(rptr_next(ADDR-1 downto 0))
     ,rdata1_o              => m_axis_tdata_o
     );
 
