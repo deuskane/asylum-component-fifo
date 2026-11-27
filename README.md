@@ -371,7 +371,7 @@ To run a list of scenarios, build the testbench once, then run the list without 
 
 ```bash
 make sim_fifo_depth8_read_sync           # build and elaboration (TESTS_LIST empty)
-fusesoc --cores-root . run --build-root build --no-export --run --target sim_fifo_depth8_read_sync asylum:component:fifo:1.2.1 --TESTS_LIST=push_pop,random --DEPTH=2
+fusesoc --cores-root . run --build-root build --no-export --run --target sim_fifo_depth8_read_sync asylum:component:fifo:1.3.0 --TESTS_LIST=push_pop,random --DEPTH=2
 ```
 
 To add a scenario: a `tb_fifo_sync_<name>_pkg` package in [sim/fifo_sync/](sim/fifo_sync/) and in the `sim_fifo_sync` fileset, its name in `C_TESTS` and its case in `run_test` of [tb_fifo_sync_tests_pkg](sim/fifo_sync/tb_fifo_sync_tests_pkg.vhd), a `sim_fifo_depth8_read_sync_<name>` target and the name in the `TESTS_LIST` of the other configurations in [FIFO.core](FIFO.core), then `make mk/targets.txt` and `make ci_generate`.
